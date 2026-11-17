@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Jogo da Memória - Arquitetura Computacional</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <main class="app">
+    <!-- Tela de início -->
+    <section id="tela-inicio" class="tela">
+      <h1>Jogo da Memória — Arquitetura Computacional</h1>
+      <p>Associe cada termo à sua explicação. Bom estudo!</p>
+      <button id="botao-iniciar" class="primary">Iniciar Jogo</button>
+      <div class="small">12 pares • HTML, CSS e JavaScript puro</div>
+    </section>
+
+    <!-- HUD -->
+    <section id="painel-hud" class="painel-hud oculto">
+      <div class="hud-item">Tempo: <span id="tempo">00:00</span></div>
+      <div class="hud-item">Acertos: <span id="acertos">0</span></div>
+      <div class="hud-item">Erros: <span id="erros">0</span></div>
+      <div class="spacer"></div>
+      <button id="botao-reiniciar" class="secondary">Reiniciar</button>
+    </section>
+
+    <!-- Board -->
+    <section id="tela-tabuleiro" class="tela oculto">
+      <div id="tabuleiro" class="tabuleiro" aria-label="Tabuleiro do jogo"></div>
+    </section>
+
+    <!-- End Screen -->
+    <section id="tela-fim" class="tela oculto">
+      <h2>Parabéns! Você concluiu o jogo.</h2>
+      <div class="summary">
+        <div>Tempo: <span id="tempo-final">00:00</span></div>
+        <div>Acertos: <span id="acertos-finais">0</span></div>
+        <div>Erros: <span id="erros-finais">0</span></div>
+      </div>
+      <h3>Explicações</h3>
+      <div id="explicacoes" class="explicacoes"></div>
+      <div class="end-actions">
+        <button id="botao-jogar-novamente" class="primary">Jogar Novamente</button>
+        <button id="botao-voltar-inicio" class="secondary">Voltar ao Início</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
