@@ -1,17 +1,13 @@
 
 /*
-
   Jogo da Memória - Arquitetura Computacional
-
-  Regras e restrições: usar apenas estruturas básicas de JS, loops,
+  Regras e restrições: estruturas básicas de JS, loops,
   condicionais, arrays/objetos, DOM e Math.random().
-
 */
 
-// Função principal do jogo
 (function(){
 
-    // ---------- Dados obrigatórios (12 termos) ----------
+    // ---------- Dados dos termos ----------
 
     var dadosTermos = [
         {pairId:1, term:"CPU", definition:"Unidade Central de Processamento: executa instruções e coordena as operações do computador."},
@@ -28,7 +24,6 @@
         {pairId:12, term:"Address Bus", definition:"Barramento de endereço: linhas que transportam o endereço de memória para leitura/escrita."}
     ];
 
-
     // ---------- Estado do jogo ----------
 
     var baralho = [];
@@ -41,6 +36,9 @@
     var segundos = 0;
     var temporizadorAtivo = false;
 
+    // Controle da dica
+    var temporizadorDica = null;
+    var dicaEmAndamento = false;
 
     // ---------- Elementos DOM ----------
 
@@ -55,6 +53,7 @@
     var elementoErros = document.getElementById('erros');
 
     var botaoReiniciar = document.getElementById('botao-reiniciar');
+    var botaoDica = document.getElementById('botao-dica');
 
     var telaFim = document.getElementById('tela-fim');
     var elementoTempoFinal = document.getElementById('tempo-final');
@@ -65,15 +64,13 @@
     var botaoJogarNovamente = document.getElementById('botao-jogar-novamente');
     var botaoVoltarInicio = document.getElementById('botao-voltar-inicio');
 
-    // Referências dos três efeitos sonoros
+    // Efeitos sonoros
     var somAcerto = document.getElementById('som-acerto');
     var somErro = document.getElementById('som-erro');
     var somConclusao = document.getElementById('som-conclusao');
 
-
     // ---------- Funções utilitárias ----------
 
-    // Converte segundos em string MM:SS
     function formatarTempo(totalSegundos){
 
         var minutos = Math.floor(totalSegundos / 60);
@@ -86,8 +83,6 @@
         return pad(minutos) + ':' + pad(segundosRestantes);
     }
 
-
-    // Embaralha um array usando Fisher-Yates e Math.random()
     function embaralharArray(arr){
 
         for(var i = arr.length - 1; i > 0; i--){
@@ -99,7 +94,6 @@
             arr[j] = tmp;
         }
     }
-
 
     // ---------- Construção do baralho ----------
 
@@ -113,7 +107,6 @@
 
             var item = dadosTermos[i];
 
-            // Carta do termo
             baralho.push({
                 id: contadorIds++,
                 pairId: item.pairId,
@@ -122,7 +115,6 @@
                 combinada: false
             });
 
-            // Carta da definição
             baralho.push({
                 id: contadorIds++,
                 pairId: item.pairId,
@@ -133,12 +125,10 @@
         }
     }
 
-
     // ---------- Renderização do tabuleiro ----------
 
     function renderizarTabuleiro(){
 
-        // Limpar conteúdo anterior
         while(tabuleiro.firstChild){
             tabuleiro.removeChild(tabuleiro.firstChild);
         }
@@ -146,7 +136,6 @@
         for(var i = 0; i < baralho.length; i++){
 
             var carta = baralho[i];
-
             var elementoCarta = document.createElement('div');
 
             elementoCarta.className = 'carta';
@@ -192,7 +181,6 @@
         }
     }
 
-
     // ---------- Reprodução dos áudios ----------
 
     function reproduzirSom(som){
@@ -211,17 +199,123 @@
         }
     }
 
+    // ---------- Sistema de dica ----------
 
-    // ---------- Lógica de jogo ao virar cartas ----------
+    function pedirDica(){
+
+        // Impedir dica durante outra jogada ou outra dica
+        if(bloqueioTabuleiro || dicaEmAndamento){
+            return;
+        }
+
+        // Não permitir dica se já existe uma carta selecionada
+        if(primeiraCarta){
+            alert('Finalize sua jogada antes de pedir uma dica!');
+            return;
+        }
+
+        // Procurar os pares que ainda não foram encontrados
+        var paresDisponiveis = [];
+
+        for(var i = 0; i < dadosTermos.length; i++){
+
+            var parEncontrado = false;
+
+            for(var j = 0; j < baralho.length; j++){
+
+                if(
+                    baralho[j].pairId === dadosTermos[i].pairId &&
+                    baralho[j].combinada
+                ){
+                    parEncontrado = true;
+                    break;
+                }
+            }
+
+            if(!parEncontrado){
+                paresDisponiveis.push(dadosTermos[i].pairId);
+            }
+        }
+
+        // Verificar se existem pares disponíveis
+        if(paresDisponiveis.length === 0){
+            return;
+        }
+
+        // Escolher aleatoriamente um par ainda não encontrado
+        var indiceAleatorio = Math.floor(
+            Math.random() * paresDisponiveis.length
+        );
+
+        var parEscolhido = paresDisponiveis[indiceAleatorio];
+
+        var cartaTermo = null;
+        var cartaDefinicao = null;
+
+        // Localizar os dois elementos do par escolhido
+        var cartasElementos = tabuleiro.querySelectorAll('.carta');
+
+        for(var k = 0; k < cartasElementos.length; k++){
+
+            var elemento = cartasElementos[k];
+
+            var pairId = parseInt(
+                elemento.getAttribute('data-pairid'),
+                10
+            );
+
+            var tipo = elemento.getAttribute('data-type');
+
+            if(pairId === parEscolhido){
+
+                if(tipo === 'term'){
+                    cartaTermo = elemento;
+                }
+
+                if(tipo === 'definition'){
+                    cartaDefinicao = elemento;
+                }
+            }
+        }
+
+        if(!cartaTermo || !cartaDefinicao){
+            return;
+        }
+
+        // Iniciar o cronômetro caso seja a primeira ação
+        if(!temporizadorAtivo){
+            iniciarTemporizador();
+        }
+
+        // Bloquear o tabuleiro durante a demonstração
+        bloqueioTabuleiro = true;
+        dicaEmAndamento = true;
+
+        // Revelar as duas cartas
+        cartaTermo.classList.add('virada');
+        cartaDefinicao.classList.add('virada');
+
+        // Ocultar novamente depois de 1,5 segundo
+        temporizadorDica = window.setTimeout(function(){
+
+            cartaTermo.classList.remove('virada');
+            cartaDefinicao.classList.remove('virada');
+
+            dicaEmAndamento = false;
+            bloqueioTabuleiro = false;
+            temporizadorDica = null;
+
+        }, 1500);
+    }
+
+    // ---------- Lógica de virar cartas ----------
 
     function aoAtivarCarta(elementoCarta){
 
-        // Se o tabuleiro está bloqueado, ignorar entrada
         if(bloqueioTabuleiro) return;
 
         var id = parseInt(elementoCarta.getAttribute('data-id'), 10);
 
-        // Localizar o objeto da carta no baralho
         var objetoCarta = null;
 
         for(var i = 0; i < baralho.length; i++){
@@ -234,21 +328,18 @@
 
         if(!objetoCarta) return;
 
-        // Se a carta já foi combinada, ignorar
         if(objetoCarta.combinada) return;
 
-        // Evitar selecionar a mesma carta duas vezes
-        if(primeiraCarta && primeiraCarta.obj.id === objetoCarta.id) return;
+        if(primeiraCarta && primeiraCarta.obj.id === objetoCarta.id){
+            return;
+        }
 
-        // Revelar visualmente a carta
         elementoCarta.classList.add('virada');
 
-        // Iniciar temporizador no primeiro movimento
         if(!temporizadorAtivo){
             iniciarTemporizador();
         }
 
-        // Selecionar a primeira carta
         if(!primeiraCarta){
 
             primeiraCarta = {
@@ -259,7 +350,6 @@
             return;
         }
 
-        // Selecionar a segunda carta
         segundaCarta = {
             obj: objetoCarta,
             el: elementoCarta
@@ -267,16 +357,14 @@
 
         bloqueioTabuleiro = true;
 
-        // Verificar se as cartas formam um par correto
+        // Verificar se as cartas formam um par
         if(
             primeiraCarta.obj.pairId === segundaCarta.obj.pairId &&
             primeiraCarta.obj.tipo !== segundaCarta.obj.tipo
         ){
 
-            // Reproduzir som de acerto
             reproduzirSom(somAcerto);
 
-            // Marcar as cartas como combinadas
             primeiraCarta.obj.combinada = true;
             segundaCarta.obj.combinada = true;
 
@@ -287,27 +375,22 @@
 
             atualizarHUD();
 
-            // Limpar seleção e desbloquear tabuleiro
             primeiraCarta = null;
             segundaCarta = null;
             bloqueioTabuleiro = false;
 
-            // Verificar se todos os pares foram encontrados
             if(contadorAcertos === dadosTermos.length){
                 finalizarJogo();
             }
 
         } else {
 
-            // Reproduzir som de erro
             reproduzirSom(somErro);
 
-            // Incrementar contador de erros
             contadorErros += 1;
 
             atualizarHUD();
 
-            // Virar as cartas novamente após 800 milissegundos
             window.setTimeout(function(){
 
                 primeiraCarta.el.classList.remove('virada');
@@ -321,7 +404,6 @@
         }
     }
 
-
     // ---------- HUD e temporizador ----------
 
     function atualizarHUD(){
@@ -331,8 +413,6 @@
         elementoErros.textContent = contadorErros.toString();
     }
 
-
-    // Iniciar temporizador
     function iniciarTemporizador(){
 
         temporizadorAtivo = true;
@@ -348,8 +428,6 @@
         }, 1000);
     }
 
-
-    // Parar temporizador
     function pararTemporizador(){
 
         temporizadorAtivo = false;
@@ -361,22 +439,18 @@
         }
     }
 
-
     // ---------- Fim do jogo ----------
 
     function finalizarJogo(){
 
         pararTemporizador();
 
-        // Reproduzir som de conclusão
         reproduzirSom(somConclusao);
 
-        // Mostrar estatísticas finais
         elementoTempoFinal.textContent = formatarTempo(segundos);
         elementoAcertosFinais.textContent = contadorAcertos.toString();
         elementoErrosFinais.textContent = contadorErros.toString();
 
-        // Preencher seção de explicações
         while(elementoExplicacoes.firstChild){
             elementoExplicacoes.removeChild(elementoExplicacoes.firstChild);
         }
@@ -401,21 +475,32 @@
             elementoExplicacoes.appendChild(caixa);
         }
 
-        // Alternar visibilidade das telas
         telaTabuleiro.classList.add('oculto');
         hud.classList.add('oculto');
         telaFim.classList.remove('oculto');
     }
 
+    // ---------- Controle da dica ao reiniciar ----------
 
-    // ---------- Inicialização e eventos ----------
+    function cancelarDica(){
+
+        if(temporizadorDica){
+
+            window.clearTimeout(temporizadorDica);
+            temporizadorDica = null;
+        }
+
+        dicaEmAndamento = false;
+        bloqueioTabuleiro = false;
+    }
+
+    // ---------- Inicialização do jogo ----------
 
     function iniciarJogo(){
 
-        // Parar temporizador
         pararTemporizador();
+        cancelarDica();
 
-        // Parar e reiniciar os três áudios
         if(somAcerto){
             somAcerto.pause();
             somAcerto.currentTime = 0;
@@ -431,7 +516,6 @@
             somConclusao.currentTime = 0;
         }
 
-        // Reiniciar estado do jogo
         segundos = 0;
         elementoTempo.textContent = formatarTempo(0);
 
@@ -442,16 +526,14 @@
 
         primeiraCarta = null;
         segundaCarta = null;
+
         bloqueioTabuleiro = false;
 
-        // Construir e embaralhar baralho
         construirBaralho();
         embaralharArray(baralho);
 
-        // Renderizar cartas
         renderizarTabuleiro();
 
-        // Alternar telas
         telaInicio.classList.add('oculto');
         telaFim.classList.add('oculto');
 
@@ -459,20 +541,17 @@
         telaTabuleiro.classList.remove('oculto');
     }
 
-
     function reiniciarJogo(){
 
         iniciarJogo();
     }
 
-
-    // ---------- Eventos de clique no tabuleiro ----------
+    // ---------- Eventos do tabuleiro ----------
 
     tabuleiro.addEventListener('click', function(e){
 
         var el = e.target;
 
-        // Subir na árvore DOM até encontrar a carta
         while(el && !el.classList.contains('carta')){
             el = el.parentElement;
         }
@@ -481,7 +560,6 @@
 
         aoAtivarCarta(el);
     });
-
 
     // ---------- Suporte ao teclado ----------
 
@@ -499,45 +577,40 @@
         }
     });
 
-
-    // ---------- Botões de controle ----------
+    // ---------- Eventos dos botões ----------
 
     botaoIniciar.addEventListener('click', function(){
-
         iniciarJogo();
     });
 
-
     botaoReiniciar.addEventListener('click', function(){
-
         reiniciarJogo();
     });
 
-
     botaoJogarNovamente.addEventListener('click', function(){
-
         iniciarJogo();
     });
 
+    // Botão de pedir dica
+    botaoDica.addEventListener('click', function(){
+        pedirDica();
+    });
 
     botaoVoltarInicio.addEventListener('click', function(){
 
-        // Parar temporizador
         pararTemporizador();
+        cancelarDica();
 
-        // Parar os áudios
         if(somAcerto) somAcerto.pause();
         if(somErro) somErro.pause();
         if(somConclusao) somConclusao.pause();
 
-        // Voltar para a tela inicial
         telaTabuleiro.classList.add('oculto');
         hud.classList.add('oculto');
         telaFim.classList.add('oculto');
 
         telaInicio.classList.remove('oculto');
     });
-
 
     // ---------- Inicialização da interface ----------
 
@@ -552,8 +625,6 @@
         atualizarHUD();
     }
 
-
-    // Executar inicialização
     iniciarApp();
 
 })();

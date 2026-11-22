@@ -125,6 +125,24 @@ button {
     transform: translateY(-2px);
 }
 
+/* Botão de dica */
+
+#botao-dica {
+    background: #b5e7d3;
+    border: 3px solid #92d2b8;
+    color: #285d4d;
+    box-shadow: 0 4px 0 #78b99e;
+}
+
+#botao-dica:hover {
+    transform: translateY(-2px);
+}
+
+#botao-dica:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #78b99e;
+}
+
 /* Painel de informações */
 
 .painel-hud {
@@ -252,6 +270,7 @@ button {
 /* Cores individuais dos pares */
 
 /* Par 1 - CPU - Coral */
+
 .carta[data-pairid="1"] .carta-frente {
     background: #FF8E7D;
     color: #ffffff;
@@ -259,6 +278,7 @@ button {
 }
 
 /* Par 2 - ULA - Azul */
+
 .carta[data-pairid="2"] .carta-frente {
     background: #79B8F2;
     color: #ffffff;
@@ -266,6 +286,7 @@ button {
 }
 
 /* Par 3 - UC - Verde */
+
 .carta[data-pairid="3"] .carta-frente {
     background: #75CBA8;
     color: #ffffff;
@@ -273,6 +294,7 @@ button {
 }
 
 /* Par 4 - Registradores - Amarelo */
+
 .carta[data-pairid="4"] .carta-frente {
     background: #FFE66D;
     color: #66551B;
@@ -280,6 +302,7 @@ button {
 }
 
 /* Par 5 - RAM - Lilás */
+
 .carta[data-pairid="5"] .carta-frente {
     background: #D6B4F0;
     color: #ffffff;
@@ -287,6 +310,7 @@ button {
 }
 
 /* Par 6 - ROM - Azul escuro */
+
 .carta[data-pairid="6"] .carta-frente {
     background: #225F9E;
     color: #ffffff;
@@ -294,6 +318,7 @@ button {
 }
 
 /* Par 7 - EEPROM - Laranja */
+
 .carta[data-pairid="7"] .carta-frente {
     background: #FFB866;
     color: #68421D;
@@ -301,6 +326,7 @@ button {
 }
 
 /* Par 8 - Flash - Rosa */
+
 .carta[data-pairid="8"] .carta-frente {
     background: #F28AB2;
     color: #ffffff;
@@ -308,6 +334,7 @@ button {
 }
 
 /* Par 9 - Cache - Turquesa */
+
 .carta[data-pairid="9"] .carta-frente {
     background: #62C9C4;
     color: #ffffff;
@@ -315,6 +342,7 @@ button {
 }
 
 /* Par 10 - Memória de massa - Vermelho */
+
 .carta[data-pairid="10"] .carta-frente {
     background: #E76B6B;
     color: #ffffff;
@@ -322,6 +350,7 @@ button {
 }
 
 /* Par 11 - DMA - Verde claro */
+
 .carta[data-pairid="11"] .carta-frente {
     background: #B5E7D3;
     color: #285D4D;
@@ -329,6 +358,7 @@ button {
 }
 
 /* Par 12 - Address Bus - Azul pastel */
+
 .carta[data-pairid="12"] .carta-frente {
     background: #A9C9F5;
     color: #225F9E;
@@ -393,6 +423,7 @@ button {
 /* Telas menores */
 
 @media (max-width: 420px) {
+
     h1 {
         font-size: 1.5rem;
     }
@@ -419,6 +450,10 @@ button {
     }
 
     .end-actions button {
+        width: 100%;
+    }
+
+    .painel-hud button {
         width: 100%;
     }
 }
